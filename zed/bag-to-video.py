@@ -3,38 +3,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import sys
+from cv_bridge import CvBridge, CvBridgeError
 
 
 def main(path):
+    bridge = CvBridge()
     bag = rosbag.Bag(path)
     topics = [
         '/zed/rgb/image_rect_color'
     ]
 
     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-    video = cv2.VideoWriter('{}.avi'.format(path), fourcc, 30.0, (1280, 720))
+    video = cv2.VideoWriter('{}.avi'.format(path), fourcc, 30.0, (1280, 720), True)
 
     for topic, message, timestamp in bag.read_messages(topics=topics):
-        data = np.array(map(ord, message.data), dtype=np.uint8)
-        image = data.reshape(message.height, message.width, 3)
-        
         print '{}: [{}]: {}'.format(timestamp, topic, '')
-        print 'height={} width={}'.format(message.height, message.width)
-        print 'shape={}'.format(image.shape)
 
-        # BGR -> RGB
-        # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)        
-        
-        # cv2.imshow('image', image)
-        # cv2.waitKey(0)
-        # plt.imshow(image)
-        # plt.show()
-        
-        # video.write(image)
+        try:
+            image = bridge.imgmsg_to_cv2(message)
+            video.write(image)
+        except CvBridgeError as e:
+            print e
 
-    video.release()
     bag.close()
     cv2.destroyAllWindows()
+    video.release()
 
 
 if __name__ == '__main__':
