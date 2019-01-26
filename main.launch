@@ -4,4 +4,5 @@
     <node name="serial" pkg="control" type="serial-talker.py" />
 
     <include file="$(find zed_wrapper)/launch/zed.launch" />
+    <include file="$(find razor_imu_9dof)/launch/razor-betsy-pub.launch" />
 </launch>
